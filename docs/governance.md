@@ -5,7 +5,7 @@
 1. **Every decision hits the audit log.** Each agent writes actor, action, target, outcome, and rationale. Nothing implicit, nothing off-record.
 2. **The pipeline stays deterministic; LLM calls only narrate.** Discovery, classification, graph, validation — all pure Python. The ADK runtime runs one LLM call at the end to summarise the run for a human reviewer.
 3. **Every SA gets least privilege.** The discovery SA holds read-only roles on the scope. The sandbox SA holds write roles on the sandbox project only. Apply against production requires a different SA and explicit HITL.
-4. **No secrets enter source.** ai-tf uses short-lived WIF tokens by default. The repo commits config *paths* — never values.
+4. **No secrets enter source.** tf-out uses short-lived WIF tokens by default. The repo commits config *paths* — never values.
 5. **A human can step in on every mutation.** `HumanGate` guards blocking policy denials and every sandbox apply. CI pre-approves via `AI_TF_APPROVE=yes`; the approval event captures approver + reason.
 
 ## Audit log format (chained, tamper-evident)

@@ -1,4 +1,4 @@
-# Gap analysis — ai-tf vs AGENT_GOVERNANCE_FRAMEWORK.md
+# Gap analysis — tf-out vs AGENT_GOVERNANCE_FRAMEWORK.md
 
 Review against §19 Minimum compliance checklist. Scope: this MVP aims for **L1 — Foundational** conformance, with named migration paths to L2.
 

@@ -1,4 +1,4 @@
-# Contributing to ai-tf
+# Contributing to tf-out
 
 Thanks for your interest in contributing. This document is short on purpose — most questions are answered by the code and by the docs in `docs/`.
 
@@ -14,7 +14,7 @@ Thanks for your interest in contributing. This document is short on purpose — 
 ```bash
 uv sync                      # create .venv, install pinned deps from uv.lock
 uv run pytest                # run the test suite (no network)
-uv run ai-tf inspect         # sanity-check settings
+uv run tf-out inspect         # sanity-check settings
 ```
 
 No live GCP access is required to develop or test. Tests are hermetic.

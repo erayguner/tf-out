@@ -1,6 +1,6 @@
 # GCP resource coverage (2026)
 
-Source of truth for which GCP resources ai-tf imports from Cloud Asset Inventory into Terraform today. Cross-checked against:
+Source of truth for which GCP resources tf-out imports from Cloud Asset Inventory into Terraform today. Cross-checked against:
 
 - Google's **canonical CAI asset-types list** (`cloud.google.com/asset-inventory/docs/asset-types`)
 - **hashicorp/google** provider **v7.28.0** (1,064 resources) via the Terraform Registry MCP
@@ -173,7 +173,7 @@ Add the asset type to `config/settings.yaml → discovery.asset_types.<domain>` 
 
 ```bash
 # 1. Discovery + generation
-uv run ai-tf run --config config/settings.yaml
+uv run tf-out run --config config/settings.yaml
 
 # 2. In generated-terraform/
 terraform init

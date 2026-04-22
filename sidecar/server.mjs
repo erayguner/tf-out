@@ -144,7 +144,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, HOST, () => {
-  console.log(`ai-tf agentdb sidecar listening on http://${HOST}:${PORT}  db=${DB_PATH}`);
+  console.log(`tf-out agentdb sidecar listening on http://${HOST}:${PORT}  db=${DB_PATH}`);
 });
 
 for (const sig of ['SIGINT', 'SIGTERM']) {

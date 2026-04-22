@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-`ai-tf` is pre-1.0. Only the `main` branch receives security fixes.
+`tf-out` is pre-1.0. Only the `main` branch receives security fixes.
 
 | Version   | Supported          |
 | --------- | ------------------ |
@@ -18,7 +18,7 @@ Report privately via one of these channels:
 1. **GitHub Private Vulnerability Reporting (preferred).**
    Open a report at <https://github.com/erayguner/tf-out/security/advisories/new>.
    This creates a private advisory visible only to repo maintainers.
-2. **Email:** `eray4793@gmail.com` — subject line `ai-tf security report`.
+2. **Email:** `eray4793@gmail.com` — subject line `tf-out security report`.
    PGP is available on request.
 
 Please include:
@@ -68,4 +68,4 @@ will not be pursued under CFAA-equivalent theories or DMCA. I will publicly ackn
 
 ## Hall of fame
 
-Reporters who have helped improve `ai-tf` will be listed here once the first advisory is resolved.
+Reporters who have helped improve `tf-out` will be listed here once the first advisory is resolved.

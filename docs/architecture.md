@@ -4,7 +4,7 @@
 
 1. **The pipeline runs without an LLM.** Every stage is a pure Python function over typed models. The ADK runtime wraps the whole pipeline as one deterministic tool for natural-language summaries; tests and CI run without any LLM call.
 2. **The core is provider-agnostic.** `DiscoveredResource` is a shared shape. Adding AWS means writing an AWS discovery client that emits the same model; classification, generation, and graph reuse unchanged.
-3. **No output ships without validation.** ai-tf marks nothing "production-ready" until `terraform init/validate/plan/apply/destroy` passes in an isolated sandbox project.
+3. **No output ships without validation.** tf-out marks nothing "production-ready" until `terraform init/validate/plan/apply/destroy` passes in an isolated sandbox project.
 4. **Every action lands in the audit log.** Each agent writes actor, action, target, outcome, and rationale to the chained SHA-256 audit log.
 
 ## Pipeline

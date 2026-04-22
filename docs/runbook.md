@@ -7,7 +7,7 @@ The word *agent* appears in three unrelated senses in this codebase. Keep them s
 | Sense | What it is | Where it lives |
 |---|---|---|
 | **Pipeline agent** | A Python class implementing `run(ctx) -> ctx`. One per pipeline stage (discovery, classification, governance, generation, dependency, validation, reasoning_bank). | `src/agents/*.py` |
-| **GCP agent SA** | The Google Cloud service account `ai-tf-agent@…` that the pipeline impersonates at runtime. | IAM, see "WIF setup" below |
+| **GCP agent SA** | The Google Cloud service account `tf-out-agent@…` that the pipeline impersonates at runtime. | IAM, see "WIF setup" below |
 | **Agent trace** | Per-run replayable log of what the pipeline did. | `traces/<run_id>.trace.jsonl`, see "Investigating" below |
 
 When the runbook says "agent runtime" it means *the process that executes the pipeline* — not a separate agent daemon. There is no deploy step for agents themselves; see "Deploying agents" below.
@@ -25,7 +25,7 @@ Two entry points are supported:
 
 1. **Deterministic Python runner** — default, no LLM in the loop:
    ```bash
-   uv run ai-tf run --config config/settings.yaml
+   uv run tf-out run --config config/settings.yaml
    ```
    Each stage runs in sequence, writes to `PipelineContext`, and records its actions in the audit log. This is what CI uses.
 
@@ -55,14 +55,14 @@ The agent runtime must be able to exchange a runtime-issued OIDC/JWT token (GitH
 
 1. **Create the agent service account** in the host project:
    ```bash
-   gcloud iam service-accounts create ai-tf-agent --project=$HOST_PROJECT
+   gcloud iam service-accounts create tf-out-agent --project=$HOST_PROJECT
    ```
 
 2. **Grant least-privilege discovery roles** on the target scope (project/folder/org):
    ```bash
    for R in roles/cloudasset.viewer roles/iam.securityReviewer roles/compute.viewer; do
      gcloud projects add-iam-policy-binding $TARGET_PROJECT \
-       --member="serviceAccount:ai-tf-agent@$HOST_PROJECT.iam.gserviceaccount.com" \
+       --member="serviceAccount:tf-out-agent@$HOST_PROJECT.iam.gserviceaccount.com" \
        --role="$R"
    done
    ```
@@ -70,15 +70,15 @@ The agent runtime must be able to exchange a runtime-issued OIDC/JWT token (GitH
 3. **Grant sandbox write roles** on the sandbox project only:
    ```bash
    gcloud projects add-iam-policy-binding $SANDBOX_PROJECT \
-     --member="serviceAccount:ai-tf-agent@$HOST_PROJECT.iam.gserviceaccount.com" \
+     --member="serviceAccount:tf-out-agent@$HOST_PROJECT.iam.gserviceaccount.com" \
      --role="roles/owner"    # scope-limited to sandbox; never used on target
    ```
 
 4. **Create the Workload Identity Pool + Provider** (GitHub OIDC example):
    ```bash
-   gcloud iam workload-identity-pools create ai-tf-pool --location=global
-   gcloud iam workload-identity-pools providers create-oidc ai-tf-github \
-     --location=global --workload-identity-pool=ai-tf-pool \
+   gcloud iam workload-identity-pools create tf-out-pool --location=global
+   gcloud iam workload-identity-pools providers create-oidc tf-out-github \
+     --location=global --workload-identity-pool=tf-out-pool \
      --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository" \
      --issuer-uri="https://token.actions.githubusercontent.com"
    ```
@@ -86,9 +86,9 @@ The agent runtime must be able to exchange a runtime-issued OIDC/JWT token (GitH
 5. **Bind the federated principal to the SA**:
    ```bash
    gcloud iam service-accounts add-iam-policy-binding \
-     ai-tf-agent@$HOST_PROJECT.iam.gserviceaccount.com \
+     tf-out-agent@$HOST_PROJECT.iam.gserviceaccount.com \
      --role=roles/iam.workloadIdentityUser \
-     --member="principalSet://iam.googleapis.com/projects/$HOST_PROJECT_NUMBER/locations/global/workloadIdentityPools/ai-tf-pool/attribute.repository/$ORG/$REPO"
+     --member="principalSet://iam.googleapis.com/projects/$HOST_PROJECT_NUMBER/locations/global/workloadIdentityPools/tf-out-pool/attribute.repository/$ORG/$REPO"
    ```
 
 6. **Fill `config/wif_config.json`** using `config/wif_config.example.json` as a template.
@@ -97,7 +97,7 @@ The agent runtime must be able to exchange a runtime-issued OIDC/JWT token (GitH
 
 ### Local dev (ADC — fastest path)
 
-For local exploration, use `gcloud`'s Application Default Credentials. ai-tf refuses ADC by default; flip the opt-in explicitly:
+For local exploration, use `gcloud`'s Application Default Credentials. tf-out refuses ADC by default; flip the opt-in explicitly:
 
 ```bash
 uv sync                                                      # creates .venv, installs from uv.lock
@@ -106,8 +106,8 @@ gcloud auth application-default login
 # Opt in — keep this change local; settings.yaml is committed.
 $EDITOR config/settings.yaml        # set auth.allow_adc: true
 
-uv run ai-tf inspect                                         # sanity-check settings
-uv run ai-tf run --config config/settings.yaml               # interactive HITL on stdin
+uv run tf-out inspect                                         # sanity-check settings
+uv run tf-out run --config config/settings.yaml               # interactive HITL on stdin
 ```
 
 `uv run <cmd>` runs inside the project venv without activation. To activate manually: `source .venv/bin/activate` after `uv sync`.
@@ -169,7 +169,7 @@ Two channels. The governor consults both before every tool call.
 echo '{"reason":"operator halt: unexpected scope"}' > kill/<run_id>.halt
 
 # Environment — single-host dev
-AI_TF_HALT=<run_id> AI_TF_HALT_REASON="pager" uv run ai-tf run
+AI_TF_HALT=<run_id> AI_TF_HALT_REASON="pager" uv run tf-out run
 # Use AI_TF_HALT=* to halt every run in the process
 ```
 
@@ -183,7 +183,7 @@ HITL accepts signed approval tokens. Mint one from an operator shell or chat bot
 export AI_TF_HITL_KEY="$(openssl rand -hex 32)"   # same key as the runner
 python -c "from src.governance.hitl import mint_token; \
   print(mint_token(run_id='20260421T120000Z-abcd', action='sandbox_apply', \
-                   decision='granted', approver='eray', reason='ticket-123', ttl_seconds=900))"
+                   decision='granted', approver='user', reason='ticket-123', ttl_seconds=900))"
 ```
 
 Pass the token back via `AI_TF_APPROVAL_TOKEN`. Expired, reused, or cross-action tokens deny automatically.

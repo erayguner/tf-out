@@ -1,4 +1,4 @@
-# ai-tf
+# tf-out
 
 [![CI](https://github.com/erayguner/tf-out/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/erayguner/tf-out/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/erayguner/tf-out/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/erayguner/tf-out/actions/workflows/codeql.yml)
@@ -11,7 +11,7 @@
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits&logoColor=white)](https://www.conventionalcommits.org)
 [![Terraform](https://img.shields.io/badge/Terraform-%E2%89%A51.14-7B42BC?logo=terraform&logoColor=white)](https://www.terraform.io)
 
-**ai-tf reverse-engineers a live GCP project into Terraform.**
+**tf-out reverse-engineers a live GCP project into Terraform.**
 
 It walks Cloud Asset Inventory, classifies every resource against the Terraform provider, writes HCL + `import {}` blocks, builds a dependency graph, and validates the output in an isolated sandbox project — all with an append-only audit log and human-in-the-loop gates on risky actions.
 
@@ -42,7 +42,7 @@ Each stage writes to a chained SHA-256 audit log. Any blocking policy violation 
 
 ### Local dev (fastest — uses your gcloud ADC)
 
-ai-tf uses [**uv**](https://docs.astral.sh/uv/) for dependency and environment management. Install uv once (`brew install uv` / `curl -LsSf https://astral.sh/uv/install.sh | sh`), then:
+tf-out uses [**uv**](https://docs.astral.sh/uv/) for dependency and environment management. Install uv once (`brew install uv` / `curl -LsSf https://astral.sh/uv/install.sh | sh`), then:
 
 ```bash
 uv sync                                      # creates .venv, installs pinned deps from uv.lock
@@ -55,8 +55,8 @@ $EDITOR config/settings.yaml
 #   auth.allow_adc         → true   (local only)
 #   validation.sandbox_project_id → projects/<an-empty-project>  (skip if you don't need validate)
 
-uv run ai-tf inspect                         # sanity-check your settings
-uv run ai-tf run --config config/settings.yaml
+uv run tf-out inspect                         # sanity-check your settings
+uv run tf-out run --config config/settings.yaml
 ```
 
 `uv run` invokes commands inside the project venv without an explicit `source .venv/bin/activate`. Activate it manually if you prefer: `source .venv/bin/activate`.
@@ -72,7 +72,7 @@ Follow [docs/runbook.md](docs/runbook.md) — creates the pool, provider, SA bin
 - **First-class** (≈14 templates) — ship full Jinja HCL. `terraform apply` runs clean after `import`.
 - **Import-only** (the rest) — emit a canonical `import {}` block; Terraform synthesises HCL via `terraform plan -generate-config-out=auto_generated.tf` (1.5+).
 
-ai-tf skips Google-managed resources that Terraform can't legally own: `k8s.io/*`, default compute/App Engine SAs, service agents, peering/network/hub routes. They land in `MANUAL_RESOURCES.md` with a reason.
+tf-out skips Google-managed resources that Terraform can't legally own: `k8s.io/*`, default compute/App Engine SAs, service agents, peering/network/hub routes. They land in `MANUAL_RESOURCES.md` with a reason.
 
 Full matrix: [docs/RESOURCE_COVERAGE.md](docs/RESOURCE_COVERAGE.md). Provider verification: [docs/IMPORT_REVIEW.md](docs/IMPORT_REVIEW.md).
 

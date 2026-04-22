@@ -1,7 +1,7 @@
 {
-  "name": "ai-tf-agentdb-sidecar",
+  "name": "tf-out-agentdb-sidecar",
   "version": "0.1.0",
-  "description": "Localhost AgentDB memory sidecar for the ai-tf Python pipeline",
+  "description": "Localhost AgentDB memory sidecar for the tf-out Python pipeline",
   "type": "module",
   "private": true,
   "scripts": {

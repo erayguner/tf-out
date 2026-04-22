@@ -1,5 +1,5 @@
 [project]
-name = "ai-tf"
+name = "tf-out"
 version = "0.1.0"
 description = "Google ADK agentic system for GCP discovery and Terraform generation"
 requires-python = ">=3.13"
@@ -19,7 +19,7 @@ dependencies = [
 ]
 
 [project.scripts]
-ai-tf = "src.main:app"
+tf-out = "src.main:app"
 
 # PEP 735 dependency groups — uv's preferred location for non-extra dev deps.
 # Installed by `uv sync` by default; skip with `uv sync --no-dev`.

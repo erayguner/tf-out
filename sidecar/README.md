@@ -1,6 +1,6 @@
-# ai-tf agentdb sidecar
+# tf-out agentdb sidecar
 
-Localhost-only AgentDB memory service for the ai-tf Python pipeline.
+Localhost-only AgentDB memory service for the tf-out Python pipeline.
 
 > **Known issue (2026-04):** `server.mjs:19` imports `createAgentDBAdapter`
 > from `agentic-flow/reasoningbank`. That export was removed by upstream across
@@ -35,7 +35,7 @@ Environment variables:
 |---|---|---|
 | `AI_TF_SIDECAR_PORT` | 7443 | Loopback port |
 | `AI_TF_SIDECAR_TOKEN` | `dev-token-not-for-prod` | Shared-secret bearer token |
-| `AI_TF_SIDECAR_DB` | `.agentdb/ai-tf.db` | AgentDB file path |
+| `AI_TF_SIDECAR_DB` | `.agentdb/tf-out.db` | AgentDB file path |
 
 The Python client must set the same token via `memory.sidecar_token` in `config/settings.yaml` (or the `AI_TF_SIDECAR_TOKEN` env var).
 

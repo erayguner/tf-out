@@ -10,14 +10,14 @@ from src.governance.hitl import (
 
 def test_valid_token_is_accepted(monkeypatch):
     monkeypatch.setenv("AI_TF_HITL_KEY", "shared-key")
-    token = mint_token("run-1", "sandbox_apply", "granted", "eray@example.com", "ticket-42")
+    token = mint_token("run-1", "sandbox_apply", "granted", "user@example.com", "ticket-42")
     monkeypatch.setenv(HumanGate.ENV_TOKEN, token)
 
     gate = HumanGate(interactive=False)
     a = gate.request("sandbox_apply", "summary", run_id="run-1")
     assert a.granted
     assert a.channel == "token"
-    assert a.approver == "eray@example.com"
+    assert a.approver == "user@example.com"
 
 
 def test_action_mismatch_rejected(monkeypatch):
@@ -71,6 +71,6 @@ def test_approver_pool_enforced(monkeypatch):
     monkeypatch.setenv("AI_TF_HITL_KEY", "shared-key")
     token = mint_token("run-1", "sandbox_apply", "granted", "stranger@ext.com", "r")
     monkeypatch.setenv(HumanGate.ENV_TOKEN, token)
-    gate = HumanGate(interactive=False, approver_pool=["eray@example.com"])
+    gate = HumanGate(interactive=False, approver_pool=["user@example.com"])
     with pytest.raises(ApprovalForged):
         gate.request("sandbox_apply", "summary", run_id="run-1")
