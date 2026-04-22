@@ -652,8 +652,13 @@ def _is_google_managed_sa(resource: DiscoveredResource) -> bool:
     if email.endswith(_GOOGLE_MANAGED_SA_SUFFIXES):
         return True
     # Service agents: "service-<number>@gcp-sa-*.iam.gserviceaccount.com" and
-    # any "@gcp-sa-*.iam.gserviceaccount.com" address.
-    if ".iam.gserviceaccount.com" in email and "@gcp-sa-" in email:
+    # any "<prefix>@gcp-sa-*.iam.gserviceaccount.com" address.
+    local, sep, domain = email.partition("@")
+    if not sep:
+        return False
+    if not (local.startswith("gcp-sa-") or local.startswith("service-")):
+        return False
+    if domain == "iam.gserviceaccount.com" or domain.endswith(".iam.gserviceaccount.com"):
         return True
     return False
 
