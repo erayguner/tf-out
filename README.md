@@ -1,6 +1,7 @@
 # ai-tf
 
 [![CI](https://github.com/erayguner/tf-out/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/erayguner/tf-out/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/erayguner/tf-out/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/erayguner/tf-out/actions/workflows/codeql.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.13%2B-blue?logo=python&logoColor=white)](pyproject.toml)
 [![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
