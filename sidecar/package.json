@@ -1,0 +1,17 @@
+{
+  "name": "ai-tf-agentdb-sidecar",
+  "version": "0.1.0",
+  "description": "Localhost AgentDB memory sidecar for the ai-tf Python pipeline",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node --watch server.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "agentic-flow": "^1.0.7"
+  }
+}

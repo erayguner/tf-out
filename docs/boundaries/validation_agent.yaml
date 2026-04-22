@@ -1,0 +1,44 @@
+agent: validation_agent
+version: 1.0
+purpose: Validate generated Terraform against an isolated sandbox project via init/validate/plan/apply/destroy.
+role: Operator
+owner: platform-team
+on_call: platform-oncall
+model_card: null
+
+in_scope_tools:
+  - local:src.validation.sandbox.SandboxLifecycle.validate_and_apply
+  - terraform:init
+  - terraform:validate
+  - terraform:plan
+  - terraform:apply
+  - terraform:destroy
+
+out_of_scope_systems:
+  - any GCP project other than validation.sandbox_project_id
+  - networks / resources outside the sandbox project
+  - production apply (a separate, yet-to-be-wired Autonomous-operator agent)
+
+delegatable_agents: []
+
+data_classes:
+  - Internal
+
+approval_class: per_call   # sandbox apply requires HITL every time (AI_TF_APPROVE=yes in CI)
+
+least_privilege:
+  identity: WIF-impersonated SA scoped to sandbox project only
+  iam_roles:
+    - roles/owner                 # scope-limited to sandbox project; NEVER granted on target
+  sandbox_isolation:
+    - runtime: hermetic subprocess with scoped PATH + env allow-list
+    - plugin_cache: per-run TF_PLUGIN_CACHE_DIR
+    - network: "host network (L2 migration target: Cloud Build container)"
+
+reversibility_guarantees:
+  - destroy always runs (try/finally); even if apply fails mid-flight
+  - apply has a hard wall-clock timeout (validation.apply_timeout_seconds)
+  - sandbox project is checked NOT to be inside discovery scope
+
+migration_notes:
+  l2_target: Execute terraform inside a provider-managed sandbox (Cloud Build with pinned terraform image + SLSA provenance).

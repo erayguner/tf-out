@@ -1,0 +1,25 @@
+agent: classification_agent
+version: 1.0
+purpose: Label discovered resources as TF-supported, importable, or manual.
+role: Observer
+owner: platform-team
+on_call: platform-oncall
+model_card: null
+
+in_scope_tools:
+  - local:src.discovery.classifiers.classify_all
+
+out_of_scope_systems:
+  - any network egress
+  - any I/O outside the pipeline context
+
+delegatable_agents: []
+
+data_classes:
+  - Internal
+
+approval_class: none
+
+least_privilege:
+  identity: none (pure function over in-memory data)
+  iam_roles: []

@@ -1,0 +1,109 @@
+{# Networking module: VPCs, subnets, firewall rules, routes, DNS #}
+{%- for c in classified %}
+  {%- set a = c.resource.attributes %}
+  {%- if c.resource.asset_type == "compute.googleapis.com/Network" %}
+
+resource "google_compute_network" "{{ c.address }}" {
+  name                    = "{{ c.resource.name }}"
+  project                 = var.project_id
+  auto_create_subnetworks = {{ a.get('autoCreateSubnetworks', false) | tojson }}
+  routing_mode            = "{{ a.get('routingConfig', {}).get('routingMode', 'REGIONAL') }}"
+  {% if a.get('mtu') %}
+  mtu                     = {{ a['mtu'] }}
+  {% endif %}
+  description             = {{ (a.get('description') or '') | tojson }}
+}
+  {%- elif c.resource.asset_type == "compute.googleapis.com/Subnetwork" %}
+
+resource "google_compute_subnetwork" "{{ c.address }}" {
+  name          = "{{ c.resource.name }}"
+  project       = var.project_id
+  region        = "{{ c.resource.location }}"
+  ip_cidr_range = "{{ a.get('ipCidrRange', '') }}"
+  network       = "{{ a.get('network', '') }}"
+  {% if a.get('privateIpGoogleAccess') is not none %}
+  private_ip_google_access = {{ a['privateIpGoogleAccess'] | tojson }}
+  {% endif %}
+  {% if a.get('secondaryIpRanges') %}
+  dynamic "secondary_ip_range" {
+    for_each = {{ a['secondaryIpRanges'] | tojson }}
+    content {
+      range_name    = secondary_ip_range.value.rangeName
+      ip_cidr_range = secondary_ip_range.value.ipCidrRange
+    }
+  }
+  {% endif %}
+}
+  {%- elif c.resource.asset_type == "compute.googleapis.com/Firewall" %}
+
+resource "google_compute_firewall" "{{ c.address }}" {
+  name      = "{{ c.resource.name }}"
+  project   = var.project_id
+  network   = "{{ a.get('network', '') }}"
+  direction = "{{ a.get('direction', 'INGRESS') }}"
+  priority  = {{ a.get('priority', 1000) }}
+  {% if a.get('sourceRanges') %}
+  source_ranges = {{ a['sourceRanges'] | tojson }}
+  {% endif %}
+  {% if a.get('targetTags') %}
+  target_tags = {{ a['targetTags'] | tojson }}
+  {% endif %}
+  {% for allow in a.get('allowed', []) %}
+  allow {
+    protocol = "{{ allow.IPProtocol }}"
+    {% if allow.get('ports') %}
+    ports    = {{ allow['ports'] | tojson }}
+    {% endif %}
+  }
+  {% endfor %}
+  {% for deny in a.get('denied', []) %}
+  deny {
+    protocol = "{{ deny.IPProtocol }}"
+    {% if deny.get('ports') %}
+    ports    = {{ deny['ports'] | tojson }}
+    {% endif %}
+  }
+  {% endfor %}
+  description = {{ (a.get('description') or '') | tojson }}
+}
+  {%- elif c.resource.asset_type == "compute.googleapis.com/Route" %}
+    {# google_compute_route only supports 5 next-hop types. Peering/Network/Hub
+       routes are created implicitly by their parent resource and can't be
+       managed here — skip them with an explanatory comment. #}
+    {% if a.get('nextHopGateway') or a.get('nextHopIp') or a.get('nextHopInstance') or a.get('nextHopIlb') or a.get('nextHopVpnTunnel') %}
+
+resource "google_compute_route" "{{ c.address }}" {
+  name        = "{{ c.resource.name }}"
+  project     = var.project_id
+  network     = "{{ a.get('network', '') }}"
+  dest_range  = "{{ a.get('destRange', '') }}"
+  priority    = {{ a.get('priority', 1000) }}
+  {% if a.get('nextHopGateway') %}
+  next_hop_gateway = "{{ a['nextHopGateway'] }}"
+  {% elif a.get('nextHopIp') %}
+  next_hop_ip = "{{ a['nextHopIp'] }}"
+  {% elif a.get('nextHopInstance') %}
+  next_hop_instance = "{{ a['nextHopInstance'] }}"
+  {% elif a.get('nextHopIlb') %}
+  next_hop_ilb = "{{ a['nextHopIlb'] }}"
+  {% elif a.get('nextHopVpnTunnel') %}
+  next_hop_vpn_tunnel = "{{ a['nextHopVpnTunnel'] }}"
+  {% endif %}
+}
+    {% else %}
+
+# Skipped: google_compute_route "{{ c.resource.name }}" — next-hop type is not
+# manageable by google_compute_route (peering/network/hub routes are created
+# implicitly by their parent resource).
+    {% endif %}
+  {%- elif c.resource.asset_type == "dns.googleapis.com/ManagedZone" %}
+
+resource "google_dns_managed_zone" "{{ c.address }}" {
+  name        = "{{ c.resource.name }}"
+  project     = var.project_id
+  dns_name    = "{{ a.get('dnsName', '') }}"
+  description = {{ (a.get('description') or '') | tojson }}
+  visibility  = "{{ (a.get('visibility') or 'public') | lower }}"
+}
+  {%- endif %}
+{%- endfor %}

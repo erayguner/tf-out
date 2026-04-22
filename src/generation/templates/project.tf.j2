@@ -1,0 +1,32 @@
+{# Project module: google_project + google_project_service (enabled APIs) #}
+{%- for c in classified %}
+  {%- set a = c.resource.attributes %}
+  {%- if c.resource.asset_type == "cloudresourcemanager.googleapis.com/Project" %}
+
+resource "google_project" "{{ c.address }}" {
+  project_id = "{{ a.get('projectId') or c.resource.name }}"
+  name       = {{ (a.get('name') or a.get('displayName') or c.resource.name) | tojson }}
+  {% if a.get('parent') %}
+  {# parent is a proto map {type, id} on newer CAI; fall back to a plain string #}
+    {% if a['parent'] is mapping %}
+  folder_id  = "{{ a['parent'].get('id', '') }}"
+    {% else %}
+  # parent = {{ a['parent'] | tojson }}
+    {% endif %}
+  {% endif %}
+  {% if a.get('billingAccountName') %}
+  billing_account = "{{ a['billingAccountName'].rsplit('/', 1)[-1] }}"
+  {% endif %}
+  labels = {{ labels | tojson }}
+}
+  {%- elif c.resource.asset_type == "serviceusage.googleapis.com/Service" %}
+
+resource "google_project_service" "{{ c.address }}" {
+  project = var.project_id
+  service = "{{ c.resource.name }}"
+  {# Don't disable the API on destroy — safer default for imports. #}
+  disable_on_destroy         = false
+  disable_dependent_services = false
+}
+  {%- endif %}
+{%- endfor %}

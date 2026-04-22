@@ -1,0 +1,15 @@
+{
+  "scope": "projects/example-proj",
+  "resources": [
+    {
+      "provider": "gcp",
+      "domain": "networking",
+      "asset_type": "compute.googleapis.com/Network",
+      "name": "vpc-app",
+      "full_resource_name": "//compute.googleapis.com/projects/example-proj/global/networks/vpc-app",
+      "project": "example-proj",
+      "location": "global",
+      "attributes": {"autoCreateSubnetworks": false, "routingConfig": {"routingMode": "REGIONAL"}}
+    }
+  ]
+}

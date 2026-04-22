@@ -1,0 +1,33 @@
+agent: discovery_agent
+version: 1.0
+purpose: Inventory all GCP resources in scope via Cloud Asset Inventory.
+role: Observer
+owner: platform-team
+on_call: platform-oncall
+model_card: null   # deterministic agent; no LLM in loop
+
+in_scope_tools:
+  - cloudasset.googleapis.com:ListAssets
+  - cloudasset.googleapis.com:ExportAssets
+
+out_of_scope_systems:
+  - any mutating API (compute.instances.insert, iam.roles.create, etc.)
+  - cross-organisation reads outside configured scope
+  - user data plane (BQ table contents, GCS object bodies)
+
+delegatable_agents: []
+
+data_classes:
+  - Internal        # resource names, labels, IAM principals (emails)
+  - Confidential    # IAM policies reveal org structure
+
+approval_class: none   # read-only scanning; no approvals needed
+
+least_privilege:
+  identity: "WIF-impersonated SA (fallback: ADC with allow_adc=true)"
+  iam_roles:
+    - roles/cloudasset.viewer
+    - roles/iam.securityReviewer
+
+migration_notes:
+  l2_target: Per-agent Vertex Agent Identity replacing shared impersonated SA.

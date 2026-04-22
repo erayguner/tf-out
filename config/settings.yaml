@@ -1,0 +1,185 @@
+# tf-out runtime configuration
+# All agent behaviour is driven by this file. No values are hardcoded in source.
+
+project:
+  # Discovery scope: one of ["project", "folder", "organization"]
+  scope_type: project
+  scope_id: "projects/YOUR_PROJECT_ID"               # e.g. projects/my-proj or folders/1234 or organizations/1234
+
+  # Environment label applied to every generated resource
+  environment: dev
+
+auth:
+  # Workload Identity Federation. Service account is impersonated via WIF.
+  # See docs/runbook.md for one-time setup.
+  wif_config_path: config/wif_config.json
+  impersonated_sa: "tf-out-agent@YOUR_PROJECT_ID.iam.gserviceaccount.com"   # e.g. tf-out-agent@<project>.iam.gserviceaccount.com
+
+  # Application Default Credentials fallback. Broader blast radius than WIF —
+  # permitted for local dev only. Keep false in production.
+  # See docs/governance/GAP_ANALYSIS.md for the rationale.
+  allow_adc: true
+
+  # Read-only discovery role required. Sandbox apply needs writes on sandbox project only.
+  required_roles:
+    - roles/cloudasset.viewer
+    - roles/iam.securityReviewer
+    - roles/compute.viewer
+
+discovery:
+  # Asset types to inventory. Extend here as new domains are added.
+  # Full list: docs/RESOURCE_COVERAGE.md. Below is the default high-value
+  # set — ~80 asset types across IAM, networking, compute, storage, security,
+  # devops, messaging, observability, AI/ML. CAI returns what exists; unknown
+  # types in this list are silently skipped.
+  asset_types:
+    iam:
+      - cloudresourcemanager.googleapis.com/Project
+      - cloudresourcemanager.googleapis.com/Folder
+      - iam.googleapis.com/ServiceAccount
+      - iam.googleapis.com/Role
+      - iam.googleapis.com/WorkloadIdentityPool
+      - iam.googleapis.com/WorkloadIdentityPoolProvider
+      - identity.accesscontextmanager.googleapis.com/AccessPolicy
+      - identity.accesscontextmanager.googleapis.com/AccessLevel
+      - identity.accesscontextmanager.googleapis.com/ServicePerimeter
+      # Enabled project APIs — maps to google_project_service. Required if
+      # you want the "terraform imports" to cover APIs you've turned on.
+      - serviceusage.googleapis.com/Service
+    networking:
+      - compute.googleapis.com/Network
+      - compute.googleapis.com/Subnetwork
+      - compute.googleapis.com/Firewall
+      - compute.googleapis.com/FirewallPolicy
+      - compute.googleapis.com/Route
+      - compute.googleapis.com/Router
+      - compute.googleapis.com/Address
+      - compute.googleapis.com/GlobalAddress
+      - compute.googleapis.com/BackendService
+      - compute.googleapis.com/RegionBackendService
+      - compute.googleapis.com/ForwardingRule
+      - compute.googleapis.com/GlobalForwardingRule
+      - compute.googleapis.com/HealthCheck
+      - compute.googleapis.com/UrlMap
+      - compute.googleapis.com/TargetHttpProxy
+      - compute.googleapis.com/TargetHttpsProxy
+      - compute.googleapis.com/SslCertificate
+      - compute.googleapis.com/SecurityPolicy
+      - compute.googleapis.com/VpnGateway
+      - compute.googleapis.com/VpnTunnel
+      - compute.googleapis.com/Interconnect
+      - compute.googleapis.com/InterconnectAttachment
+      - dns.googleapis.com/ManagedZone
+      - dns.googleapis.com/Policy
+      - networkconnectivity.googleapis.com/Hub
+      - networkconnectivity.googleapis.com/Spoke
+      - certificatemanager.googleapis.com/Certificate
+      - certificatemanager.googleapis.com/CertificateMap
+      - vpcaccess.googleapis.com/Connector
+    compute:
+      - compute.googleapis.com/Instance
+      - compute.googleapis.com/InstanceGroup
+      - compute.googleapis.com/InstanceGroupManager
+      - compute.googleapis.com/InstanceTemplate
+      - compute.googleapis.com/Disk
+      - compute.googleapis.com/RegionDisk
+      - run.googleapis.com/Service
+      - run.googleapis.com/Job
+      - cloudfunctions.googleapis.com/Function
+      - container.googleapis.com/Cluster
+      - container.googleapis.com/NodePool
+      - appengine.googleapis.com/Application
+      - gkehub.googleapis.com/Membership
+    storage:
+      - storage.googleapis.com/Bucket
+      - bigquery.googleapis.com/Dataset
+      - bigquery.googleapis.com/Table
+      - sqladmin.googleapis.com/Instance
+      - spanner.googleapis.com/Instance
+      - bigtableadmin.googleapis.com/Instance
+      - firestore.googleapis.com/Database
+      - redis.googleapis.com/Instance
+      - alloydb.googleapis.com/Cluster
+      - alloydb.googleapis.com/Instance
+      - file.googleapis.com/Instance
+      - dataproc.googleapis.com/Cluster
+      - composer.googleapis.com/Environment
+    security:
+      - cloudkms.googleapis.com/KeyRing
+      - cloudkms.googleapis.com/CryptoKey
+      - secretmanager.googleapis.com/Secret
+      - privateca.googleapis.com/CaPool
+      - privateca.googleapis.com/CertificateAuthority
+      - binaryauthorization.googleapis.com/Policy
+    devops:
+      - artifactregistry.googleapis.com/Repository
+      - cloudbuild.googleapis.com/BuildTrigger
+      - cloudbuild.googleapis.com/WorkerPool
+      - clouddeploy.googleapis.com/DeliveryPipeline
+      - clouddeploy.googleapis.com/Target
+      - logging.googleapis.com/LogSink
+      - logging.googleapis.com/LogMetric
+      - monitoring.googleapis.com/AlertPolicy
+      - monitoring.googleapis.com/NotificationChannel
+      - monitoring.googleapis.com/UptimeCheckConfig
+    messaging:
+      - pubsub.googleapis.com/Topic
+      - pubsub.googleapis.com/Subscription
+      - cloudtasks.googleapis.com/Queue
+      - eventarc.googleapis.com/Trigger
+    ai:
+      - aiplatform.googleapis.com/Endpoint
+      - aiplatform.googleapis.com/Dataset
+      - aiplatform.googleapis.com/Model
+    workflows:
+      - workflows.googleapis.com/Workflow
+      - apigateway.googleapis.com/Api
+      - apigateway.googleapis.com/Gateway
+
+  # Assets returned but without a TF mapping land in the manual-handling report.
+  include_iam_policies: true
+
+generation:
+  output_dir: generated-terraform
+  # Provider pinned to google 7.x — latest major as of 2026. Bump via a CM
+  # event (docs/governance/AGENT_GOVERNANCE_FRAMEWORK.md §16.2).
+  provider_version: "~> 7.0"
+  # Pinned to Terraform 1.14.x — required for declarative `import { }` blocks
+  # (1.5+), `identity { }` blocks (1.12+), and current `-generate-config-out`
+  # semantics. Bump is a CM event (framework §16.2).
+  terraform_version: ">= 1.14.0"
+
+  naming:
+    prefix: "{env}-"
+    max_length: 63
+  labels:
+    managed_by: tf-out
+    generated_at: runtime
+
+validation:
+  # Sandbox project used for plan/apply. MUST be empty and isolated.
+  sandbox_project_id: ""
+  sandbox_region: us-central1
+  auto_apply: true       # Day-one requirement: sandbox apply is automated
+  apply_timeout_seconds: 600
+
+governance:
+  audit_log_dir: audit-logs
+  hitl_required_for:
+    - production_apply
+    - iam_policy_bindings_at_org_level
+    - kms_key_destroy
+    - vpc_service_controls
+  max_resources_per_run: 500
+  deny_patterns:
+    - "allUsers"
+    - "allAuthenticatedUsers"
+
+memory:
+  # Opt-in. Requires sidecar/ running; see sidecar/README.md.
+  enabled: false
+  sidecar_url: http://127.0.0.1:7443
+  # sidecar_token: ""                    # or AI_TF_SIDECAR_TOKEN env var
+  # namespace: ""                        # defaults to project.scope_id
+  retention_days: 180
+  timeout_seconds: 5.0

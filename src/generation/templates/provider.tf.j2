@@ -1,0 +1,30 @@
+terraform {
+  required_version = "{{ terraform_version }}"
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "{{ provider_version }}"
+    }
+  }
+}
+
+provider "google" {
+  project = var.project_id
+  region  = var.region
+}
+
+variable "project_id" {
+  type        = string
+  description = "Target GCP project for generated resources"
+}
+
+variable "region" {
+  type        = string
+  default     = "{{ default_region }}"
+  description = "Default region for regional resources"
+}
+
+variable "environment" {
+  type    = string
+  default = "{{ environment }}"
+}

@@ -1,0 +1,79 @@
+# ---------- Python ----------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+htmlcov/
+dist/
+build/
+
+# ---------- Environment / secrets ----------
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+*credentials*.json
+wif_config.json
+secrets/
+
+# ---------- Terraform ----------
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+crash.*.log
+.terraform.tfstate.lock.info
+
+# ---------- Generated outputs (keep dir, drop contents) ----------
+generated-terraform/*
+!generated-terraform/.keep
+
+# ---------- Audit logs (sensitive trace data) ----------
+audit-logs/
+*.audit.jsonl
+
+# ---------- Local agent/tooling state ----------
+.claude/
+.claude-flow/
+.swarm/
+.hive-mind/
+.mcp.json
+CLAUDE.local.md
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# ---------- Node / sidecar ----------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ---------- Editors / IDE ----------
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ---------- OS ----------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

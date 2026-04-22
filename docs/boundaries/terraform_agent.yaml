@@ -1,0 +1,24 @@
+agent: terraform_agent
+version: 1.0
+purpose: Render Jinja HCL templates into a deterministic, diff-stable Terraform module.
+role: Advisor     # produces artefacts, does not apply them
+owner: platform-team
+on_call: platform-oncall
+model_card: null  # template rendering is deterministic
+
+in_scope_tools:
+  - local:src.generation.hcl_writer.TerraformWriter.write
+
+out_of_scope_systems:
+  - terraform apply / destroy (delegated to validation_agent)
+  - any cloud API call
+  - writes outside the configured generation.output_dir
+
+delegatable_agents:
+  - dependency_agent
+  - validation_agent
+
+data_classes:
+  - Internal
+
+approval_class: none

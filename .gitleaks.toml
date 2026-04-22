@@ -1,0 +1,28 @@
+# gitleaks config — extends the default ruleset and adds project-specific allowlists.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Allow known-safe test fixtures and example identifiers"
+paths = [
+  '''uv\.lock''',
+  '''package-lock\.json''',
+  '''examples/sample_discovery\.json''',
+  '''config/wif_config\.example\.json''',
+]
+regexes = [
+  # Well-known AWS docs example key — used in filter tests to assert the scanner triggers.
+  '''AKIAIOSFODNN7EXAMPLE''',
+  '''wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY''',
+  # Obvious placeholder tokens in tests.
+  '''ghp_a{40}''',
+  '''xxx''',
+  # Placeholder project IDs we use in docs/config.
+  '''YOUR_PROJECT_ID''',
+  '''example-project-12345''',
+  '''PROJECT_NUMBER''',
+  '''POOL_ID''',
+  '''PROVIDER_ID''',
+]
+
+# Gitleaks treats the allowlist as additive on top of the default ruleset.

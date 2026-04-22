@@ -1,0 +1,30 @@
+agent: governance_agent
+version: 1.0
+purpose: Enforce policy engine verdicts and route blocking violations through HITL.
+role: Operator
+owner: security-team
+on_call: security-oncall
+model_card: null
+
+in_scope_tools:
+  - local:src.governance.policies.PolicyEngine.evaluate
+  - local:src.governance.hitl.HumanGate.request
+
+out_of_scope_systems:
+  - any external network call
+  - self-approval (the agent cannot approve its own requests)
+
+delegatable_agents: []
+
+data_classes:
+  - Internal
+  - Confidential
+
+approval_class: per_call   # blocking violations require HITL approval to waive
+
+least_privilege:
+  identity: none (uses audit log + HITL only)
+  iam_roles: []
+
+migration_notes:
+  l2_target: Webhook-driven approval gateway with Slack buttons + 2-of-N quorum for irreversibles.

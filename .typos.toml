@@ -1,0 +1,43 @@
+# typos config — source-of-truth spell check.
+
+[files]
+extend-exclude = [
+  ".venv/",
+  "node_modules/",
+  ".claude/",
+  ".claude-flow/",
+  ".swarm/",
+  "generated-terraform/",
+  "audit-logs/",
+  "uv.lock",
+  "package-lock.json",
+]
+
+[default]
+# Project/domain terms that look like typos to the spell-checker.
+extend-ignore-identifiers-re = [
+  "^AKIA[A-Z0-9]+$",
+  "^AIza[A-Za-z0-9_-]+$",
+  "^ghp_[A-Za-z0-9]+$",
+]
+# Word stems that typos should not flag.
+extend-ignore-re = [
+  "NIN[A-Za-z]*",
+  "nino[a-z]*",
+]
+
+[default.extend-words]
+# GCP / Terraform / project lingo.
+IAM = "IAM"
+HITL = "HITL"
+WIF = "WIF"
+HNSW = "HNSW"
+ADC = "ADC"
+CAI = "CAI"
+HCL = "HCL"
+tf = "tf"
+# Valid alternative spellings / domain terms.
+Unparseable = "Unparseable"
+unparseable = "unparseable"
+NINOs = "NINOs"
+NINO = "NINO"

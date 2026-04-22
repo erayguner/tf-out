@@ -1,0 +1,50 @@
+agent: reasoning_bank_agent
+version: 1.0
+purpose: Record each run's trajectory into AgentDB-backed memory and provide similarity search over prior runs.
+role: Advisor       # writes to memory (not cloud); reads advisory context
+owner: platform-team
+on_call: platform-oncall
+model_card: null    # ONNX all-MiniLM-L6-v2 (384d) — embedding-only, no generative model
+
+in_scope_tools:
+  - sidecar:POST /store
+  - sidecar:POST /search
+  - sidecar:POST /prune
+  - sidecar:GET  /stats
+  - sidecar:GET  /healthz
+
+out_of_scope_systems:
+  - any cloud mutation API
+  - any non-loopback network address
+  - reading from other tenants' namespaces (cross-session isolation — §11.6)
+
+delegatable_agents: []
+
+data_classes:
+  - Internal        # trajectory summaries (scope, outcome, violation rules)
+  - Confidential    # IAM principal emails may appear in violation payloads
+
+approval_class: none   # memory writes/reads are advisory; no approval gate
+
+least_privilege:
+  identity: "shared-secret bearer token (AI_TF_SIDECAR_TOKEN) bound to loopback"
+  sidecar_isolation:
+    - bind: "127.0.0.1 only"
+    - auth: "Authorization: Bearer <token> required on every request"
+    - content_filter: "run on Python side BEFORE payload crosses the socket"
+
+memory_controls:   # §11.6
+  retention_days: 180                     # settings.memory.retention_days
+  user_scoped_deletion: partial           # delete_by_correlation is stubbed; /delete endpoint is an L2 extension
+  cross_session_isolation: enforced       # namespace per project.scope_id
+  memory_injection_defence: enforced      # FilterStack.scan() on every payload before send
+
+failure_mode:
+  posture: fail-open
+  rationale: >
+    Memory outages must not fail the Terraform pipeline. All sidecar failures
+    are audited; the trajectory is simply not recorded.
+
+migration_notes:
+  l2_target: Replace loopback sidecar with managed memory primitive
+    (Vertex Agent Engine Memory Bank) when pipeline runs in Agent Engine.

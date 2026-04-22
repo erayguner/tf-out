@@ -1,0 +1,21 @@
+agent: dependency_agent
+version: 1.0
+purpose: Build the resource dependency graph and persist JSON + DOT exports.
+role: Observer
+owner: platform-team
+on_call: platform-oncall
+model_card: null
+
+in_scope_tools:
+  - local:src.graph.dependency.build_graph
+
+out_of_scope_systems:
+  - any network egress
+  - writes outside the configured output_dir
+
+delegatable_agents: []
+
+data_classes:
+  - Internal
+
+approval_class: none

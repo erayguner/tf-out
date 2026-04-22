@@ -1,0 +1,52 @@
+{# IAM module: service accounts + custom roles + policy bindings #}
+{%- for c in classified %}
+  {%- if c.resource.asset_type == "iam.googleapis.com/ServiceAccount" %}
+
+{# account_id is the local-part of the SA email (before '@'), NOT uniqueId.
+   Must match [a-z]([-a-z0-9]*[a-z0-9]), 6-30 chars. Google provider 7.x
+   docs: https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/google_service_account #}
+resource "google_service_account" "{{ c.address }}" {
+  account_id   = "{{ (c.resource.attributes.get('email') or (c.resource.name + '@x')).split('@')[0] }}"
+  display_name = {{ c.resource.attributes.get('displayName', c.resource.name) | tojson }}
+  project      = var.project_id
+  {% if c.resource.attributes.get('description') %}
+  description  = {{ c.resource.attributes['description'] | tojson }}
+  {% endif %}
+}
+  {%- elif c.resource.asset_type == "iam.googleapis.com/Role" %}
+
+resource "google_project_iam_custom_role" "{{ c.address }}" {
+  role_id     = "{{ c.resource.name }}"
+  title       = {{ (c.resource.attributes.get('title') or c.resource.name) | tojson }}
+  description = {{ (c.resource.attributes.get('description') or '') | tojson }}
+  permissions = {{ c.resource.attributes.get('includedPermissions', []) | tojson }}
+  project     = var.project_id
+  stage       = "{{ c.resource.attributes.get('stage', 'GA') }}"
+}
+  {%- endif %}
+{%- endfor %}
+
+{# Policy bindings attached via iam_policy sidecar — emitted when discovery captured them #}
+{%- for c in classified %}
+  {%- set pol = c.resource.attributes.get('iam_policy') %}
+  {%- if pol and pol.bindings %}
+    {%- for b in pol.bindings %}
+
+resource "google_project_iam_member" "{{ c.address }}_binding_{{ loop.index }}" {
+  project = var.project_id
+  role    = "{{ b.role }}"
+  {# Members is a list; one binding per member keeps HCL diff-clean #}
+  member  = "{{ b.members[0] if b.members else '' }}"
+  {% if b.condition %}
+  condition {
+    title      = {{ b.condition.title | tojson }}
+    expression = {{ b.condition.expression | tojson }}
+    {% if b.condition.description %}
+    description = {{ b.condition.description | tojson }}
+    {% endif %}
+  }
+  {% endif %}
+}
+    {%- endfor %}
+  {%- endif %}
+{%- endfor %}
