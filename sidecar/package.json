@@ -12,6 +12,6 @@
     "node": ">=18"
   },
   "dependencies": {
-    "agentic-flow": "^1.0.7"
+    "agentic-flow": "^2.0.7"
   }
 }
